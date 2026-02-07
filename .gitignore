@@ -1,0 +1,11 @@
+# Roblox Studio
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxm
+*.rbxmx
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
