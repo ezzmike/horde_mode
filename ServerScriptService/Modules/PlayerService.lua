@@ -1,4 +1,7 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+
+local WeaponConfig = require(ReplicatedStorage.Modules.WeaponConfig)
 local PlayerService = {}
 
 function PlayerService.init(remotes)
@@ -7,12 +10,13 @@ end
 
 function PlayerService.setupPlayer(player)
     player:SetAttribute("Currency", 0)
-    player:SetAttribute("Damage", 10)
+    player:SetAttribute("Damage", 15)
     player:SetAttribute("MaxHealth", 100)
     player:SetAttribute("WalkSpeed", 16)
     player:SetAttribute("SpeedLevel", 0)
     player:SetAttribute("HealthLevel", 0)
     player:SetAttribute("DamageLevel", 0)
+    player:SetAttribute("WeaponLevel", 2)  -- 2 = Pistol (starting weapon)
 end
 
 function PlayerService.applyCharacter(player, character)
@@ -34,12 +38,13 @@ end
 
 function PlayerService.resetRunStats(player)
     player:SetAttribute("Currency", 0)
-    player:SetAttribute("Damage", 10)
+    player:SetAttribute("Damage", 15)
     player:SetAttribute("MaxHealth", 100)
     player:SetAttribute("WalkSpeed", 16)
     player:SetAttribute("SpeedLevel", 0)
     player:SetAttribute("HealthLevel", 0)
     player:SetAttribute("DamageLevel", 0)
+    player:SetAttribute("WeaponLevel", 2)  -- 2 = Pistol (starting weapon)
 end
 
 function PlayerService.getAlivePlayers()
@@ -64,6 +69,22 @@ function PlayerService.getUpgradeCost(player, upgradeType, baseCost, increment)
     return baseCost + (level * increment)
 end
 
+function PlayerService.getCurrentWeaponId(player)
+    local level = player:GetAttribute("WeaponLevel") or 1
+    return WeaponConfig.getWeaponIdByIndex(math.min(level, #WeaponConfig.Order))
+end
+
+-- Called after each successful wave; returns the new weapon ID (upgraded)
+function PlayerService.advanceWeapon(player)
+    local level = player:GetAttribute("WeaponLevel") or 1
+    local maxLevel = #WeaponConfig.Order
+    if level < maxLevel then
+        level += 1
+        player:SetAttribute("WeaponLevel", level)
+    end
+    return WeaponConfig.getWeaponIdByIndex(level)
+end
+
 function PlayerService.applyUpgrade(player, upgradeType, amount)
     local levelAttr = upgradeType .. "Level"
     local level = player:GetAttribute(levelAttr) or 0
@@ -74,7 +95,7 @@ function PlayerService.applyUpgrade(player, upgradeType, amount)
     elseif upgradeType == "Health" then
         player:SetAttribute("MaxHealth", (player:GetAttribute("MaxHealth") or 100) + amount)
     elseif upgradeType == "Damage" then
-        player:SetAttribute("Damage", (player:GetAttribute("Damage") or 10) + amount)
+        player:SetAttribute("Damage", (player:GetAttribute("Damage") or 15) + amount)
     end
 
     local character = player.Character
